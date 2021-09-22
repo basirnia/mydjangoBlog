@@ -1,0 +1,293 @@
+﻿
+wsgi = web server gateway interface
+---------------------------------------
+
+pip --version   --> for determining version of pip
+pip install virtualenv    ---> for installing virtualenv module 
+virtualenv env ====  python -m venv django_venv  ???
+
+
+
+Creating folder for project  --> C:\Users\Voip\Desktop\Learning_log\
+
+python -m venv django_venv ---> creating Virtual env in created project
+
+C:\Users\Voip\Desktop\Learning_log\django_venv\Scripts\activate  --->Running Virtual env
+
+python.exe -m pip install --upgrade pip  --> upgrading pip
+
+pip install django     -----------> installing Django
+
+django-admin startproject llog .  -----> Creating New Project
+
+
+
+python manage.py migrate --> creating SQLite
+
+
+python manage.py runserver -----> Running Django project
+
+---------------------------------------------
+session 6
+
+python manage.py startapp learning_logs  ---> running Apps, adding App to project
+
+
+---------------------------------------------
+session 7
+C:\Users\Voip\Desktop\Learning_logs\
+پیاده سازی ساختار تازه در فایل 
+models.py 
+
+from django.db import models
+
+class Topic(models.Model):
+    text = models.CharField(max_length=200)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text
+---------------------------------------------
+session 8
+
+
+هر گاه ساختار مدل تغییر کند باید این 3 کار انجام شود.
+
+Adding learning_logs into settings.py  for define App into llog project
+
+
+INSTALLED_APPS = [
+    # My Apps
+    'learning_logs' ,
+    # Default Apps 
+
+C:\Users\Voip\Desktop\Learning_log\python manage.py makemigrations learning_logs
+python manage.py migrate
+
+---------------------------------------------
+session 9
+
+Creating Superuser
+C:\Users\Voip\Desktop\Learning_log\
+python manage.py createsuperuser
+
+---------------------------------------------
+session 10
+
+Adding Topics to admin.py for displaying Topic in database
+C:\Users\Voip\Desktop\Learning_logs\
+from .models import Topic
+admin.site.register(Topic)
+
+---------------------------------------------
+session 11
+
+DataBase Relationships
+
+C:\Users\Voip\Desktop\Learning_logs\
+applying new structure on model.py
+
+class Entry(models.Model):
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    text = models.TextField()
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = 'entries'
+
+    def __str__(self):
+         return f"{self.text[:50]}..."
+    
+    
+then migration
+C:\Users\Voip\Desktop\Learning_log\
+python manage.py makemigrations learning_logs
+python manage.py migrate
+
+
+# Register your models in admin.py  for using admin panel
+from .models import Topic, Entry
+
+admin.site.register(Topic)
+admin.site.register(Entry)
+
+---------------------------------------------
+session 12
+
+Django Shell
+
+Getting query 
+
+C:\Users\Voip\Desktop\Learning_log\
+python manage.py shell
+
+from learning_logs .models import Topic
+Topic.objects.all()
+for topic in topics :
+    print(topic.id, topic)
+
+
+first_topic=Topic.objects.get(id=2)
+first_topic.text
+first_topic.date_added
+first_topic.entry_set.all()
+
+Exit shell with  ctrl-z
+
+---------------------------------------------
+session 13
+
+Adding Pages to Django
+
+تعریف نگاشت درخواست در URL
+نوشتن تابع پردازش درView
+نوشتن قالب گرافیکی در Template
+-----
+Creating urls.py in learning_logs
+
+Urls.py
+
+from django.urls import path
+
+from . import views
+
+app_name = 'learning_logs’'
+
+urlpatterns =[ 
+	path('', views.index, name='index'),
+]
+=============
+
+Views.py
+
+from django.shortcuts import render
+
+def index(request):
+	return render(request, 'learning_logs/index.html')
+
+
+Creating templates folder in learning_logs
+Creating learning_logs folder in templates
+Creating index.html in learning_logs
+
+========
+In llog use    urls.py
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('learning_logs.urls')),
+]
+
+------- session 13
+--------------------------------------
+session 14
+
+HTML
+--------------------------------------
+session 15
+Inheritance
+
+--------------------------------------
+session 16
+
+C:\Users\Voip\Desktop\Learning_log\
+
+======
+urls.py
+from  django.urls import path
+from . import views
+
+app_name = 'learning_logs'
+
+urlpatterns = [
+    path('', views.index, name='index') , 
+    path('topics/', views.topics, name='topics')
+] 
+======
+views.py
+from django.shortcuts import render
+from .models import Topic
+
+# Create your views here.
+def index(request):
+    return render(request, 'learning_logs/index.html')
+
+def topics(request):
+    topics = Topic.objects.order_by('date_added')
+    context = {'topics': topics}
+    return render(request, 'learning_logs/topics.html', context)
+======
+creating and changes in topics.html, index.html, base.html
+
+
+--------------------------------------
+session 17
+creating and changes in topics.html, index.html, base.html
+
+C:\Users\Voip\Desktop\Learning_log\
+
+======
+urls.py
+from  django.urls import path
+from . import views
+
+app_name = 'learning_logs'
+
+urlpatterns = [
+    path('', views.index, name='index') , 
+    path('topics/', views.topics, name='topics') ,
+    path('topics/<int:topic_id>/', views.topic, name='topic') ,
+] 
+
+======
+views.py
+from django.shortcuts import render
+from .models import Topic
+
+# Create your views here.
+def index(request):
+    return render(request, 'learning_logs/index.html')
+
+def topics(request):
+    topics = Topic.objects.order_by('date_added')
+    context = {'topics': topics}
+    return render(request, 'learning_logs/topics.html', context)
+
+def topic(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+    entries = topic.entry_set.order_by('-date_added')
+    context = {'topic': topic, 'entries': entries}
+    return render(request, 'learning_logs/topic.html', context)
+
+--------------------------------------
+session 18
+
+Creating Forms using MOdelForm Class
+
+تعریف کلاس ModelForm
+تعریف نگاشت درخواست در URL
+نوشتن تابع پردازش درView
+نوشتن قالب گرافیکی در Template
+
+
+======
+forms.py
+from django import forms
+from.models import Topic
+
+class TopicForm(forms.ModelForm):
+    class Meta:
+        model = Topic
+        fields = ['text']
+        labels = {'text' : ''}
+		
+======
+
+
+
+
+
+
+
